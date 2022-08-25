@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  #frontend
+  app:
+    image: node:16
+    container_name: admin-client-ts-next
+    volumes:
+      - ../frontend/node_modules:/app/frontend/node_modules
+      - ../frontend:/app/frontend/
+      - ../shared:/app/shared
+      - ../frontend/tsconfig.json:/app/frontend/tsconfig.json
+      - ../frontend/package.json:/app/frontend/package.json
+    working_dir: /app/frontend
+    ports: 
+      - 3000:3000
+    command: yarn dev
+  #backend
+  api-service:
+    image: node:16
+    container_name: admin-backend-ts-next
+    volumes:
+      - ../backend/node_modules:/app/backend/node_modules
+      - ../backend:/app/backend/
+      - ../backend/tsconfig.json:/app/backend/tsconfig.json
+      - ../backend/package.json:/app/backend/package.json
+    ports:
+      - '3001:3000'
+    command: yarn start
+    working_dir: /app/backend
+  #mongo
+  mongodb:
+    image: mongo:5
+    container_name: auth_mongodb
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: agopinath
+      MONGO_INITDB_ROOT_PASSWORD: 5aSpuT3e!
+
