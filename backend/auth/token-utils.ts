@@ -56,9 +56,9 @@ export function verifyAccessToken(token: string) {
 }
 
 export function buildTokens(user: UserDocument) {
-  const accessPayload: AccessTokenPayload = {userId: user.id}
+  const accessPayload: AccessTokenPayload = {userId: user._id}
   //version is used to revoke the token later
-  const refreshPayload: RefreshTokenPayload = {userId: user.id, version: user.tokenVersion}
+  const refreshPayload: RefreshTokenPayload = {userId: user._id, version: user.tokenVersion}
 
   //take both payloads and convert them into tokens. This process is called signing
   const accessToken = signAccessToken(accessPayload)

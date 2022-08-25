@@ -60,7 +60,7 @@ app.get('/github', async (req, res) => {
   //set Tokens in response Object
   setTokens(res, accessToken, refreshToken)
   //redirect to home page
-  res.redirect(`${config.CLIENT_URL}/dashboards/crm/`)
+  res.redirect(`${config.CLIENT_URL}/`)
 })
 
 app.use(
@@ -95,7 +95,7 @@ app.get('/twitter', async function (req, res) {
   //set Tokens in response Object
   setTokens(res, accessToken, refreshToken)
   //redirect to home page
-  res.redirect(`${config.CLIENT_URL}/dashboards/crm/`)
+  res.redirect(`${config.CLIENT_URL}/`)
 })
 
 app.post('/refresh', async (req, res) => {
@@ -128,7 +128,7 @@ app.get('/home', authMiddleware, async (req, res) => {
   console.log('mongo_id:' + res.locals.token.userId)
   const user = await getUserById(res.locals.token.userId)
   console.log(
-    'Mongo User: ' + user?.name + ' - id: ' + user?.id + ' - GitHubID: ' + user?.gitHubUserId
+    'Mongo User: ' + user?.name + ' - id: ' + user?._id + ' - GitHubID: ' + user?.gitHubUserId
   )
   res.json(user)
 })

@@ -30,9 +30,8 @@ export async function setupUserIndexes() {
 export async function createUser(name: string, gitHubUserId: number) {
   console.log('Inside createUser')
   const user: UserDocument = {
-    //@ts-ignore
-    _id, uuidv4,
-    name,
+    _id: uuidv4.toString(),
+    name: name,
     tokenVersion: 0,
     gitHubUserId: gitHubUserId.toString(),
   }

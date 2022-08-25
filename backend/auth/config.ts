@@ -12,8 +12,8 @@ const config = {
   BASE_DOMAIN: 'localhost',
   IS_PRODUCTION: false,
 
-  ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET!,
-  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET!,
+  ACCESS_TOKEN_SECRET: 'dd5f3089-40c3-403d-af14-d0c228b05cb4',
+  REFRESH_TOKEN_SECRET: '7c4c1c50-3230-45bf-9eae-c9b2e401c767',
 
   MONGODB_URL: 'mongodb://mongodb:27017',
   MONGODB_USER: 'agopinath',
