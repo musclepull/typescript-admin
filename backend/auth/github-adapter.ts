@@ -38,7 +38,7 @@ async function getAccessToken(code: string) {
   return response.data.access_token
 }
 
-async function getUser(token: string) {
+export async function getUser(token: string) {
   const response = await axios.get<UserResponse>(USER_URL, {
     headers: {Authorization: `Bearer ${token}`},
   })

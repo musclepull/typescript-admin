@@ -26,6 +26,7 @@ import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormCo
 // ** Icons Imports
 import Google from 'mdi-material-ui/Google'
 import Github from 'mdi-material-ui/Github'
+
 import Twitter from 'mdi-material-ui/Twitter'
 import Facebook from 'mdi-material-ui/Facebook'
 import EyeOutline from 'mdi-material-ui/EyeOutline'
@@ -43,8 +44,8 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
-import envConfig from 'src/configs/custom-env-variables'
 
+import envConfig from 'src/configs/custom-env-variables'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -151,8 +152,10 @@ const LoginPage = () => {
     })
   }
 
+
   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
-  const gitHubUrl = `https://github.com/login/oauth/authorize?client_id=${envConfig.GITHUB_CLIENT_ID}&redirect_uri=${envConfig.GITHUB_REDIRECT_URL}?scope=user:email`
+
+  const gitHubUrl = `https://github.com/login/oauth/authorize?client_id=${envConfig.GITHUB_CLIENT_ID}&redirect_uri=${envConfig.GITHUB_REDIRECT_URL}`
   const twitterUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${envConfig.TWITTER_CLIENT_ID}&redirect_uri=${envConfig.TWITTER_REDIRECT_URL}&scope=tweet.read%20users.read%20follows.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain`
 
   return (
@@ -368,12 +371,12 @@ const LoginPage = () => {
                   </IconButton>
                 </Link>
                 <Link href='/' passHref>
-                  <IconButton component='a' onClick={() => window.open(twitterUrl)}>
+                <IconButton component='a' onClick={() => window.open(twitterUrl,"_self")}>
                     <Twitter sx={{ color: '#1da1f2' }} />
                   </IconButton>
                 </Link>
                 <Link href='/' passHref>
-                  <IconButton component='a' onClick={() => window.open(gitHubUrl)}>
+                <IconButton component='a' onClick={() => window.open(gitHubUrl,"_self")}>
                     <Github
                       sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : theme.palette.grey[300]) }}
                     />

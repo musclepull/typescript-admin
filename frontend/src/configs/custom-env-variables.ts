@@ -5,6 +5,7 @@ export default {
   TWITTER_REDIRECT_URL: 'http://localhost:3001/twitter',
   TWITTER_CLIENT_ID: 'TGhGWFhwVnpBYktrMjhFaU4wNWU6MTpjaQ',
   TWITTER_CLIENT_SECRET: 'MLOK9FfisJIQNhPy4MAmMsWk1Kk97O8xcwj-8HDjiLJHFkruSU',
-
+  GITHUB_API_URL: 'http://localhost:3001/github',
+  TWITTER_API_URL: 'http://localhost:3001/twitter',
   API_URL: 'http://localhost:3001',
 }

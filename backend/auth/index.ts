@@ -2,12 +2,13 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import session from 'express-session'
-import config from './config'
+import envConfig from './config'
 import {databaseClient} from './user-database'
-import {getGitHubUser} from './github-adapter'
+import {getGitHubUser, getUser} from './github-adapter'
 import {getTwitterUser} from './twitter-adapter'
 import {twitterOAuth2} from 'twitter-oauth2'
 import {request} from 'undici'
+import axios from 'axios'
 
 import {
   getUserByGitHubId,
@@ -29,6 +30,8 @@ import {
 import {Cookies} from './shared/auth'
 
 import {authMiddleware} from './auth-middleware'
+import config from './config'
+import { nextTick } from 'process'
 
 const app = express()
 
@@ -46,10 +49,30 @@ app.use(
 
 app.get('/', (req, res) => res.send('api is healthy')) //Kubernetes health check in
 
-app.get('/github', async (req, res) => {
-  const {code} = req.query
+app.get("/github", (req, res) => {
+  console.log(`Starting Redirect_github...`)
+  axios({
+    method: "POST",
+    url: `${envConfig.GITHUB_AUTH_URL}?client_id=${envConfig.GITHUB_CLIENT_ID}&client_secret=${envConfig.GITHUB_CLIENT_SECRET}&code=${req.query.code}`,
+    headers: {
+      Accept: "application/json",
+    },
+  }).then(async (response) => {
+    //redirect to home page
+    res.redirect(`${config.CLIENT_URL}?access_token=${response.data.access_token}`)
+  });
+});
+
+app.get('/proxy/user', async (req, res) => {
+
   console.log(`Starting...`)
-  const gitHubUser = await getGitHubUser(code as string)
+  var authheader = req.headers.authorization;
+  console.log('code: ' + authheader);
+  if (!authheader) {
+    res.json('You do not have proper authentication')
+}
+
+  const gitHubUser = await getUser(authheader as string)
   console.log(`GitHub User ID: ${gitHubUser.id}`)
   console.log(`GitHub User Name: ${gitHubUser.name}`)
   let user = await getUserByGitHubId(gitHubUser.id)
@@ -59,8 +82,9 @@ app.get('/github', async (req, res) => {
   const {accessToken, refreshToken} = buildTokens(user)
   //set Tokens in response Object
   setTokens(res, accessToken, refreshToken)
-  //redirect to home page
-  res.redirect(`${config.CLIENT_URL}/`)
+  //return mongo user
+  console.log(`Found user and now returning it`)
+  res.json(user)
 })
 
 app.use(

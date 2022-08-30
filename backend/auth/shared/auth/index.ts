@@ -1,6 +1,7 @@
 export enum Cookies {
   AccessToken = 'access',
   RefreshToken = 'refresh',
+  AuthToken = 'isauth'
 }
 
 export interface UserDocument {

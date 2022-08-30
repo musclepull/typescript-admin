@@ -35,6 +35,14 @@ const defaultCookieOptions: CookieOptions = {
   path: '/',
 }
 
+const authCookieOptions: CookieOptions = {
+  httpOnly: false,
+  secure: config.IS_PRODUCTION,
+  sameSite: config.IS_PRODUCTION ? 'strict' : 'lax',
+  domain: config.BASE_DOMAIN,
+  path: '/',
+}
+
 const refreshTokenCookieOptions: CookieOptions = {
   ...defaultCookieOptions,
   maxAge: TokenExpiration.Refresh * 1000,
@@ -44,6 +52,12 @@ const accessTokenCookieOptions: CookieOptions = {
   ...defaultCookieOptions,
   maxAge: TokenExpiration.Access * 1000,
 }
+
+const authtokenCookieOptions: CookieOptions = {
+  ...authCookieOptions,
+  maxAge: TokenExpiration.Refresh * 1000,
+}
+
 
 export function verifyRefreshToken(token: string) {
   return jwt.verify(token, config.REFRESH_TOKEN_SECRET) as RefreshToken
@@ -108,4 +122,6 @@ export function refreshTokens(current: RefreshToken, tokenVersion: number) {
 export function clearTokens(res: Response) {
   res.cookie(Cookies.AccessToken, '', {...defaultCookieOptions, maxAge: 0})
   res.cookie(Cookies.RefreshToken, '', {...defaultCookieOptions, maxAge: 0})
+  res.cookie(Cookies.AuthToken, '', {...defaultCookieOptions, maxAge: 0})
+
 }

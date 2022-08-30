@@ -1,6 +1,8 @@
 // ** React Imports
 import { createContext, useEffect, useState, ReactNode } from 'react'
 
+import Cookies from 'js-cookie';
+
 // ** Next Import
 import { useRouter } from 'next/router'
 
@@ -9,6 +11,9 @@ import axios from 'axios'
 
 // ** Config
 import authConfig from 'src/configs/auth'
+
+// ** envConfig
+import envConfig from 'src/configs/custom-env-variables'
 
 // ** Types
 import { AuthValuesType, RegisterParams, LoginParams, ErrCallbackType, UserDataType } from './types'
@@ -44,18 +49,21 @@ const AuthProvider = ({ children }: Props) => {
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       setIsInitialized(true)
-      const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
-      if (storedToken) {
+      const token = new URLSearchParams(window.location.search).get("access_token")
+      if(Cookies.get('access_token')){
         setLoading(true)
         await axios
-          .get(authConfig.meEndpoint, {
+          .get(`${envConfig.API_URL}/proxy/user`, {
             headers: {
-              Authorization: storedToken
+              Authorization: Cookies.get('access_token') || ''
             }
           })
           .then(async response => {
             setLoading(false)
-            setUser({ ...response.data.userData })
+            const userObj = response.data
+            userObj.role = 'admin'
+            setUser(userObj)
+            await window.localStorage.setItem('userData', JSON.stringify(response.data))        
           })
           .catch(() => {
             localStorage.removeItem('userData')
@@ -63,13 +71,45 @@ const AuthProvider = ({ children }: Props) => {
             localStorage.removeItem('accessToken')
             setUser(null)
             setLoading(false)
+            Cookies.remove('access_token')
           })
-      } else {
-        setLoading(false)
+      }
+      else{
+        if (token) {
+          setLoading(true)
+          await axios
+            .get(`${envConfig.API_URL}/proxy/user`, {
+              headers: {
+                Authorization: token || ''
+              }
+            })
+            .then(async response => {
+              setLoading(false)
+              const userObj = response.data
+              userObj.role = 'admin'
+              setUser(userObj)
+              Cookies.set('access_token', token, { expires: 1 })
+              await window.localStorage.setItem('userData', JSON.stringify(response.data))
+              if(token){
+                const redirectURL = '/dashboards/crm';
+                router.replace(redirectURL as string)
+              }
+            })
+            .catch(() => {
+              localStorage.removeItem('userData')
+              localStorage.removeItem('refreshToken')
+              localStorage.removeItem('accessToken')
+              setUser(null)
+              setLoading(false)
+              Cookies.remove('access_token')
+            })
+        } else {
+          setLoading(false)
+        }
       }
     }
     initAuth()
-  }, [])
+  }, [router])
 
   const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
     axios
