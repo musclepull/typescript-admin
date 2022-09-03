@@ -32,4 +32,6 @@ export type AuthValuesType = {
   setIsInitialized: (value: boolean) => void
   login: (params: LoginParams, errorCallback?: ErrCallbackType) => void
   register: (params: RegisterParams, errorCallback?: ErrCallbackType) => void
+  twitterLogin: () => void,
+  googleLogin: () => void
 }

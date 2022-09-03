@@ -18,6 +18,13 @@ export interface twitterUserDocument {
   twitterUserId: string
 }
 
+export interface googleUserDocument {
+  _id: string
+  name: string
+  tokenVersion: number
+  googleUserId: string
+}
+
 export interface AccessTokenPayload {
   userId: string
 }

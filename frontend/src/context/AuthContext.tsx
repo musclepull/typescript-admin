@@ -28,7 +28,9 @@ const defaultProvider: AuthValuesType = {
   login: () => Promise.resolve(),
   logout: () => Promise.resolve(),
   setIsInitialized: () => Boolean,
-  register: () => Promise.resolve()
+  register: () => Promise.resolve(),
+  twitterLogin: () => Promise.resolve(),
+  googleLogin: () => Promise.resolve()
 }
 
 const AuthContext = createContext(defaultProvider)
@@ -46,70 +48,130 @@ const AuthProvider = ({ children }: Props) => {
   // ** Hooks
   const router = useRouter()
 
+  const handleTwitterLogin = async() => {
+    axios.get(`${envConfig.API_URL}/twitterlogin`)
+  }
+
+  const handleGoogleLogin = async() => {
+    await axios.get(`${envConfig.API_URL}/auth/google/url`)
+    .then(async response => {
+      router.push(response.data)
+    })
+  }
+
+  const successfulUserInitialization = async(response : any, token : any) => {
+    setLoading(false)
+    const userObj = response.data
+    userObj.role = 'admin'
+    setUser(userObj)
+    Cookies.set('access_token', token, { expires: 1 })
+    await window.localStorage.setItem('userData', JSON.stringify(response.data))        
+  }
+
+  const errorUserInitialization = () => {
+    localStorage.removeItem('userData')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('accessToken')
+    setUser(null)
+    setLoading(false)
+    Cookies.remove('access_token')
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchUserInfoAndRedirect = async (token : string, twitter? : boolean, google? : boolean) => {
+    setLoading(true)
+    if(twitter){
+      await axios
+        .get(`${envConfig.API_URL}/proxy/user?twitter=1`, {
+          headers: {
+            Authorization: token || ''
+          }
+        })
+        .then(async response => {
+          successfulUserInitialization(response, token)        
+        })
+        .catch(() => {
+          errorUserInitialization()
+        })
+    }
+    else if(google){
+      await axios
+        .get(`${envConfig.API_URL}/proxy/user?google=1`, {
+          headers: {
+            Authorization: token || ''
+          }
+        })
+        .then(async response => {
+          successfulUserInitialization(response, token)        
+        })
+        .catch(() => {
+          errorUserInitialization()
+        })
+    }
+    else{
+      await axios
+        .get(`${envConfig.API_URL}/proxy/user`, {
+          headers: {
+            Authorization: token || ''
+          }
+        })
+        .then(async response => {
+          successfulUserInitialization(response, token)        
+        })
+        .catch(() => {
+          errorUserInitialization()
+        })
+    }
+  }
+
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       setIsInitialized(true)
       const token = new URLSearchParams(window.location.search).get("access_token")
-      if(Cookies.get('access_token')){
-        setLoading(true)
-        await axios
-          .get(`${envConfig.API_URL}/proxy/user`, {
-            headers: {
-              Authorization: Cookies.get('access_token') || ''
-            }
-          })
-          .then(async response => {
+      const istwitter = new URLSearchParams(window.location.search).get("twitter")
+      const isgoogle = new URLSearchParams(window.location.search).get("google")
+
+      if(istwitter === '1'){
+        if(Cookies.get('access_token')){
+          fetchUserInfoAndRedirect(Cookies.get('access_token') || "", true)
+        }
+        else{
+          if(token){
+            fetchUserInfoAndRedirect(token|| "" , true)
+          }
+          else{
             setLoading(false)
-            const userObj = response.data
-            userObj.role = 'admin'
-            setUser(userObj)
-            await window.localStorage.setItem('userData', JSON.stringify(response.data))        
-          })
-          .catch(() => {
-            localStorage.removeItem('userData')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('accessToken')
-            setUser(null)
+          }
+        }
+      }
+      else if(isgoogle === '1'){
+        if(Cookies.get('access_token')){
+          fetchUserInfoAndRedirect(Cookies.get('access_token') || "", false, true)
+        }
+        else{
+          if(token){
+            fetchUserInfoAndRedirect(token|| "" , false, true)
+          }
+          else{
             setLoading(false)
-            Cookies.remove('access_token')
-          })
+          }
+        }
       }
       else{
-        if (token) {
-          setLoading(true)
-          await axios
-            .get(`${envConfig.API_URL}/proxy/user`, {
-              headers: {
-                Authorization: token || ''
-              }
-            })
-            .then(async response => {
-              setLoading(false)
-              const userObj = response.data
-              userObj.role = 'admin'
-              setUser(userObj)
-              Cookies.set('access_token', token, { expires: 1 })
-              await window.localStorage.setItem('userData', JSON.stringify(response.data))
-              if(token){
-                const redirectURL = '/dashboards/crm';
-                router.replace(redirectURL as string)
-              }
-            })
-            .catch(() => {
-              localStorage.removeItem('userData')
-              localStorage.removeItem('refreshToken')
-              localStorage.removeItem('accessToken')
-              setUser(null)
-              setLoading(false)
-              Cookies.remove('access_token')
-            })
-        } else {
-          setLoading(false)
+        if(Cookies.get('access_token')){
+          fetchUserInfoAndRedirect(Cookies.get('access_token') || "")
+        }
+        else{
+          if (token) {
+            fetchUserInfoAndRedirect(token || "")
+          } else {
+            setLoading(false)
+          }
         }
       }
     }
     initAuth()
-  }, [router])
+  }, [fetchUserInfoAndRedirect, router])
 
   const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
     axios
@@ -170,7 +232,9 @@ const AuthProvider = ({ children }: Props) => {
     setIsInitialized,
     login: handleLogin,
     logout: handleLogout,
-    register: handleRegister
+    register: handleRegister,
+    twitterLogin: handleTwitterLogin,
+    googleLogin: handleGoogleLogin
   }
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>

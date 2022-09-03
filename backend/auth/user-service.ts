@@ -1,6 +1,6 @@
 import {v4 as uuidv4} from 'uuid'
 
-import {twitterUserDocument, UserDocument} from './shared/auth'
+import {googleUserDocument, twitterUserDocument, UserDocument} from './shared/auth'
 
 import config from './config'
 import {databaseClient} from './user-database'
@@ -13,6 +13,10 @@ function collection() {
 
 function twitter_collection() {
   return databaseClient.db(config.MONGODB_DATABASE).collection<twitterUserDocument>('users')
+}
+
+function google_collection() {
+  return databaseClient.db(config.MONGODB_DATABASE).collection<googleUserDocument>('users')
 }
 
 export async function setupUserIndexes() {
@@ -44,17 +48,35 @@ export async function createUser(name: string, gitHubUserId: number) {
   throw new Error()
 }
 
-export async function createTwitterUser(name: string, twitterUserId: number) {
+export async function createTwitterUser(name: string, twitterUserId: string) {
   console.log('Inside Twitter createUser')
   const user: twitterUserDocument = {
     //@ts-ignore
     _id: uuidv4,
     name,
     tokenVersion: 0,
-    twitterUserId: twitterUserId.toString(),
+    twitterUserId: twitterUserId,
   }
 
   const coll = await twitter_collection()
+  const result = await coll.insertOne(user)
+  console.log()
+  if (result.acknowledged) return user
+
+  throw new Error()
+}
+
+export async function createGoogleUser(name: string, googleUserID: string) {
+  console.log('Inside Twitter createUser')
+  const user: googleUserDocument = {
+    //@ts-ignore
+    _id: uuidv4,
+    name,
+    tokenVersion: 0,
+    googleUserId: googleUserID,
+  }
+
+  const coll = await google_collection()
   const result = await coll.insertOne(user)
   console.log()
   if (result.acknowledged) return user
@@ -83,7 +105,12 @@ export async function getUserByGitHubId(gitHubUserId: number) {
   return coll.findOne({gitHubUserId: gitHubUserId.toString()})
 }
 
-export async function getUserByTwitterId(twitterId: number) {
+export async function getUserByTwitterId(twitterId: string) {
   const coll = await twitter_collection()
-  return coll.findOne({twitterId: twitterId.toString()})
+  return coll.findOne({twitterId: twitterId})
+}
+
+export async function getUserByGoogleId(googleID: string) {
+  const coll = await google_collection()
+  return coll.findOne({googleUserId: googleID})
 }

@@ -152,11 +152,16 @@ const LoginPage = () => {
     })
   }
 
+  const handleTwitterLogin = () => {
+    auth.twitterLogin()
+  }
+
+  const handleGoogleLogin = () => {
+    auth.googleLogin()
+  }
 
   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
-
   const gitHubUrl = `https://github.com/login/oauth/authorize?client_id=${envConfig.GITHUB_CLIENT_ID}&redirect_uri=${envConfig.GITHUB_REDIRECT_URL}`
-  const twitterUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${envConfig.TWITTER_CLIENT_ID}&redirect_uri=${envConfig.TWITTER_REDIRECT_URL}&scope=tweet.read%20users.read%20follows.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain`
 
   return (
     <Box className='content-right'>
@@ -370,11 +375,9 @@ const LoginPage = () => {
                     <Facebook sx={{ color: '#497ce2' }} />
                   </IconButton>
                 </Link>
-                <Link href='/' passHref>
-                <IconButton component='a' onClick={() => window.open(twitterUrl,"_self")}>
+                <IconButton component='a' onClick={() => handleTwitterLogin()}>
                     <Twitter sx={{ color: '#1da1f2' }} />
-                  </IconButton>
-                </Link>
+                  </IconButton>             
                 <Link href='/' passHref>
                 <IconButton component='a' onClick={() => window.open(gitHubUrl,"_self")}>
                     <Github
@@ -382,11 +385,9 @@ const LoginPage = () => {
                     />
                   </IconButton>
                 </Link>
-                <Link href='/' passHref>
-                  <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                    <Google sx={{ color: '#db4437' }} />
-                  </IconButton>
-                </Link>
+                <IconButton component='a' onClick={() => handleGoogleLogin()}>
+                  <Google sx={{ color: '#db4437' }} />
+                </IconButton>
               </Box>
             </form>
           </BoxWrapper>

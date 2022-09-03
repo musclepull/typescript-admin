@@ -9,6 +9,7 @@ import {
   RefreshTokenPayload,
   UserDocument,
   twitterUserDocument,
+  googleUserDocument,
 } from './shared/auth'
 
 import config from './config'
@@ -82,6 +83,18 @@ export function buildTokens(user: UserDocument) {
 }
 
 export function buildTwitterTokens(user: twitterUserDocument) {
+  const accessPayload: AccessTokenPayload = {userId: user._id}
+  //version is used to revoke the token later
+  const refreshPayload: RefreshTokenPayload = {userId: user._id, version: user.tokenVersion}
+
+  //take both payloads and convert them into tokens. This process is called signing
+  const accessToken = signAccessToken(accessPayload)
+  const refreshToken = refreshPayload && signRefreshToken(refreshPayload)
+
+  return {accessToken, refreshToken}
+}
+
+export function buildGoogleTokens(user: googleUserDocument) {
   const accessPayload: AccessTokenPayload = {userId: user._id}
   //version is used to revoke the token later
   const refreshPayload: RefreshTokenPayload = {userId: user._id, version: user.tokenVersion}
