@@ -59,12 +59,13 @@ const AuthProvider = ({ children }: Props) => {
     })
   }
 
-  const successfulUserInitialization = async(response : any, token : any) => {
+  const successfulUserInitialization = async(response : any, token : any, authtype: any ) => {
     setLoading(false)
     const userObj = response.data
     userObj.role = 'admin'
     setUser(userObj)
     Cookies.set('access_token', token, { expires: 1 })
+    Cookies.set('auth_type', authtype, { expires: 1 })
     await window.localStorage.setItem('userData', JSON.stringify(response.data))        
   }
 
@@ -75,48 +76,49 @@ const AuthProvider = ({ children }: Props) => {
     setUser(null)
     setLoading(false)
     Cookies.remove('access_token')
+    Cookies.remove('auth_type')
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchUserInfoAndRedirect = async (token : string, twitter? : boolean, google? : boolean) => {
+  const fetchUserInfoAndRedirect = (token : string, twitter? : boolean, google? : boolean) => {
     setLoading(true)
     if(twitter){
-      await axios
+       axios
         .get(`${envConfig.API_URL}/proxy/user?twitter=1`, {
           headers: {
             Authorization: token || ''
           }
         })
         .then(async response => {
-          successfulUserInitialization(response, token)        
+          successfulUserInitialization(response, token, 'twitter')        
         })
         .catch(() => {
           errorUserInitialization()
         })
     }
     else if(google){
-      await axios
+       axios
         .get(`${envConfig.API_URL}/proxy/user?google=1`, {
           headers: {
             Authorization: token || ''
           }
         })
-        .then(async response => {
-          successfulUserInitialization(response, token)        
+        .then(response => {
+          successfulUserInitialization(response, token, 'google')        
         })
         .catch(() => {
           errorUserInitialization()
         })
     }
     else{
-      await axios
+       axios
         .get(`${envConfig.API_URL}/proxy/user`, {
           headers: {
             Authorization: token || ''
           }
         })
-        .then(async response => {
-          successfulUserInitialization(response, token)        
+        .then(response => {
+          successfulUserInitialization(response, token , 'github')        
         })
         .catch(() => {
           errorUserInitialization()
@@ -128,8 +130,8 @@ const AuthProvider = ({ children }: Props) => {
     const initAuth = async (): Promise<void> => {
       setIsInitialized(true)
       const token = new URLSearchParams(window.location.search).get("access_token")
-      const istwitter = new URLSearchParams(window.location.search).get("twitter")
-      const isgoogle = new URLSearchParams(window.location.search).get("google")
+      const istwitter = new URLSearchParams(window.location.search).get("twitter") || Cookies.get('auth_type') === 'twitter' ? '1' : '0'
+      const isgoogle = new URLSearchParams(window.location.search).get("google") || Cookies.get('auth_type') === 'google' ? '1' : '0'
 
       if(istwitter === '1'){
         if(Cookies.get('access_token')){
@@ -171,7 +173,7 @@ const AuthProvider = ({ children }: Props) => {
       }
     }
     initAuth()
-  }, [fetchUserInfoAndRedirect, router])
+  },[])
 
   const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
     axios
@@ -207,6 +209,8 @@ const AuthProvider = ({ children }: Props) => {
     setIsInitialized(false)
     window.localStorage.removeItem('userData')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
+    Cookies.remove('access_token')
+    Cookies.remove('auth_type')
     router.push('/login')
   }
 

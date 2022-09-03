@@ -49,10 +49,6 @@ export function getGoogleAuthURL() {
     console.log('Inside get tokens of google')
     let { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials({access_token: tokens.access_token});
-
-    /** Save credential to the global variable in case access token was refreshed.
-      * ACTION ITEM: In a production app, you likely want to save the refresh token
-      *              in a secure persistent database instead. */
     return tokens;
   }
 
